@@ -1,1 +1,0 @@
-print('hi, min-jae! Thank you for becoming our team.')
