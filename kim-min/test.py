@@ -1,2 +1,1 @@
-print('hi')
-print('asdfh')
+print('hi, min-jae! Thank you for becoming our team.')
