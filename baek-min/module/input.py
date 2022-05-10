@@ -35,6 +35,7 @@ for i in range(0, n):
 
 time_quantum = int(input())
 
+#의도한 대로 잘 출력되는지 확인하기
 print('P0 pId: {}, aTime: {}, sTime: {}, priority: {}'.format(P0.pId, P0.aTime ,P0.sTime, P0.priority))
 print('P1 pId: {}, aTime: {}, sTime: {}, priority: {}'.format(P1.pId, P1.aTime ,P1.sTime, P1.priority))
 print('P2 pId: {}, aTime: {}, sTime: {}, priority: {}'.format(P2.pId, P2.aTime ,P2.sTime, P2.priority))
