@@ -49,9 +49,9 @@ def fcfs(n, process_list):
         sum_waiting += fcfs_process_list[i].result.waiting
         sum_turnaround += fcfs_process_list[i].result.turnaround
         sum_response += fcfs_process_list[i].result.response
-    average_waiting = sum_waiting / float(n)
-    average_turnaround = sum_turnaround / float(n)
-    average_response = sum_response / float(n)
+    average_waiting = sum_waiting / n
+    average_turnaround = sum_turnaround / n
+    average_response = sum_response / n
 
     print('average waiting time = {}'.format(average_waiting))
     print('average turnaround time = {}'.format(average_turnaround))
