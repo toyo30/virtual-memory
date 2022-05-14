@@ -150,6 +150,66 @@ def sjf(n, process_list):
         process.print()
     sum_print(endQ)
 
+def rr(n, process_list, time_quantum):
+    quantum = time_quantum
+    pList = sorted(process_list, key=lambda Process: Process.arrival)
+
+    '''
+    1. 카운터에 따라 대기 큐 갱신
+    2. 카운터에 따라 대기 큐 정렬, key = Process.service
+    '''
+    total = 0
+    for process in pList:
+        total += process.service
+    
+    waitQ = []
+    endQ = []
+    gantt = []
+
+    if pList:
+        if pList[0].arrival == 0:
+            waitQ.append(pList[0])
+            del pList[0]
+
+    for counter in range(total):
+        # 연산 시작
+        waitQ[0].service -= 1
+        quantum -= 1
+        gantt.append(waitQ[0].pId)
+        # 연산 끝
+
+        # waiting queue 업데이트: new arrival
+        if pList:
+            if pList[0].arrival == counter + 1:
+                waitQ.append(pList[0])
+                del pList[0]
+
+        # waiting queue 업데이트: 끝난 process 뒤로
+        if waitQ[0].service == 0:
+            waitQ[0].result.end = counter + 1
+            endQ.append(waitQ[0])
+            del waitQ[0]
+
+            if quantum == 0:
+                quantum = 2
+        else:                
+            if quantum == 0:
+                quantum = 2
+                waitQ.append(waitQ[0])
+                del waitQ[0]
+
+    print(''.join(gantt))    
+    print()
+
+    endQ = sorted(endQ, key=lambda Process : Process.arrival)
+    for process in endQ:
+        pId = process.pId
+        process.service = gantt.count(pId)
+        process.result.turnaround = process.result.end - process.arrival
+        process.result.waiting = process.result.turnaround - process.service
+        process.result.response = gantt.index(pId) - process.arrival
+        process.print()
+    sum_print(endQ)
 
 # 메인
 n = int(input())
@@ -160,4 +220,5 @@ for i in range(0, n):
 time_quantum = int(input())
 print(' ')
 
-sjf(n, process_list)
+# srtf(n, process_list)
+rr(n, process_list, time_quantum)
