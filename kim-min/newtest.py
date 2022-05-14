@@ -82,6 +82,7 @@ def srtf(n, process_list):
     waitQ = []
     endQ = []
     gantt = []
+
     for counter in range(total):
         # 대기 큐 업데이트
         if pList:
@@ -211,6 +212,161 @@ def rr(n, process_list, time_quantum):
         process.print()
     sum_print(endQ)
 
+def nonpreemptive_priority(n, process_list):
+    pList = sorted(process_list, key=lambda Process: Process.arrival)
+    total = 0
+    for process in pList:
+        total += process.service
+    
+    waitQ = []
+    endQ = []
+    gantt = []
+
+    # arrival time == 0인 process를 waiting queue에 올림
+    if pList[0].arrival == 0:
+        waitQ.append(pList[0])
+        del pList[0]
+
+    for counter in range(total):
+        # 연산 시작
+        waitQ[0].service -= 1
+        gantt.append(waitQ[0].pId)
+        # 연산 끝
+
+        # 다음 waiting queue 업데이트
+        if pList:
+            if pList[0].arrival == counter:
+                waitQ.append(pList[0])
+                del pList[0]
+        
+        # 아까 연산했던 process 처리: 삭제 or 뒤로
+        if waitQ[0].service == 0:
+            waitQ[0].result.end = counter + 1
+            endQ.append(waitQ[0])
+            del waitQ[0]
+            waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+    print(''.join(gantt))    
+    print()
+
+    endQ = sorted(endQ, key=lambda Process : Process.arrival)
+    for process in endQ:
+        pId = process.pId
+        process.service = gantt.count(pId)
+        process.result.turnaround = process.result.end - process.arrival
+        process.result.waiting = process.result.turnaround - process.service
+        process.result.response = gantt.index(pId) - process.arrival
+        process.print()
+    sum_print(endQ)
+
+def preemptive_priority(n, process_list):
+    pList = sorted(process_list, key=lambda Process: Process.arrival)
+
+    '''
+    1. 카운터에 따라 대기 큐 갱신
+    2. 카운터에 따라 대기 큐 정렬, key = Process.service
+    '''
+    total = 0
+    for process in pList:
+        total += process.service
+    
+    waitQ = []
+    endQ = []
+    gantt = []
+
+    if pList[0].arrival == 0:
+        waitQ.append(pList[0])
+        del pList[0]
+
+    for counter in range(total):
+        waitQ[0].service -= 1
+        gantt.append(waitQ[0].pId)
+
+        if pList:
+            if pList[0].arrival == counter + 1:
+                waitQ.append(pList[0])
+                del pList[0]
+
+        if waitQ[0].service == 0:
+            waitQ[0].result.end = counter + 1
+            endQ.append(waitQ[0])
+            del waitQ[0]
+        waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+    print(''.join(gantt))    
+    print()
+
+    endQ = sorted(endQ, key=lambda Process : Process.arrival)
+    for process in endQ:
+        pId = process.pId
+        process.service = gantt.count(pId)
+        process.result.turnaround = process.result.end - process.arrival
+        process.result.waiting = process.result.turnaround - process.service
+        process.result.response = gantt.index(pId) - process.arrival
+        process.print()
+    sum_print(endQ)
+
+def nonpreemptive_priority_with_RR(n, process_list, time_quantum):
+    quantum = time_quantum
+    pList = sorted(process_list, key=lambda Process: Process.arrival)
+
+    '''
+    1. 카운터에 따라 대기 큐 갱신
+    2. 카운터에 따라 대기 큐 정렬, key = Process.service
+    '''
+    total = 0
+    for process in pList:
+        total += process.service
+    
+    waitQ = []
+    endQ = []
+    gantt = []
+
+    if pList[0].arrival == 0:
+        waitQ.append(pList[0])
+        del pList[0]
+
+    for counter in range(total):
+        # 연산 시작
+        waitQ[0].service -= 1
+        quantum -= 1
+        gantt.append(waitQ[0].pId)
+        # 연산 끝
+
+        # waiting queue 업데이트: new arrival
+        if pList:
+            if pList[0].arrival == counter + 1:
+                waitQ.append(pList[0])
+                del pList[0]
+
+        # waiting queue 업데이트: 끝난 process 뒤로
+        if waitQ[0].service == 0:
+            waitQ[0].result.end = counter + 1
+            endQ.append(waitQ[0])
+            del waitQ[0]
+
+            if quantum == 0:
+                quantum = 2
+                waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+        else:                
+            if quantum == 0:
+                quantum = 2
+                waitQ.append(waitQ[0])
+                del waitQ[0]
+                waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+        
+
+    print(''.join(gantt))    
+    print()
+
+    endQ = sorted(endQ, key=lambda Process : Process.arrival)
+    for process in endQ:
+        pId = process.pId
+        process.service = gantt.count(pId)
+        process.result.turnaround = process.result.end - process.arrival
+        process.result.waiting = process.result.turnaround - process.service
+        process.result.response = gantt.index(pId) - process.arrival
+        process.print()
+    sum_print(endQ)
+
 # 메인
 n = int(input())
 process_list = []
@@ -220,5 +376,10 @@ for i in range(0, n):
 time_quantum = int(input())
 print(' ')
 
+# fcfs(n, process_list)
+# sjf((n, process_list)
 # srtf(n, process_list)
-rr(n, process_list, time_quantum)
+# rr(n, process_list, time_quantum)
+# nonpreemptive_priority(n, process_list)
+# preemptive_priority(n, process_list)
+nonpreemptive_priority_with_RR(n, process_list, time_quantum)
