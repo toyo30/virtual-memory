@@ -68,7 +68,7 @@ def fcfs(n, process_list):
     print('average turnaround time = {}'.format(average_turnaround))
     print('average response time = {}'.format(average_response))
 
-def sjf(n, process_list):
+def srtf(n, process_list):
     pList = sorted(process_list, key=lambda Process: Process.arrival)
 
     '''
@@ -76,7 +76,7 @@ def sjf(n, process_list):
     2. 카운터에 따라 대기 큐 정렬, key = Process.service
     '''
     total = 0
-    for process in process_list:
+    for process in pList:
         total += process.service
     
     waitQ = []
@@ -84,10 +84,10 @@ def sjf(n, process_list):
     gantt = []
     for counter in range(total):
         # 대기 큐 업데이트
-        if process_list:
-            if process_list[0].arrival == counter:
-                waitQ.append(process_list[0])
-                del process_list[0]
+        if pList:
+            if pList[0].arrival == counter:
+                waitQ.append(pList[0])
+                del pList[0]
         
         waitQ = sorted(waitQ, key=lambda Process : Process.service)
         waitQ[0].service -= 1
@@ -96,6 +96,47 @@ def sjf(n, process_list):
             waitQ[0].result.end = counter + 1
             endQ.append(waitQ[0])
             del waitQ[0]
+    print(''.join(gantt))    
+    print()
+
+    endQ = sorted(endQ, key=lambda Process : Process.arrival)
+    for process in endQ:
+        pId = process.pId
+        process.service = gantt.count(pId)
+        process.result.turnaround = process.result.end - process.arrival
+        process.result.waiting = process.result.turnaround - process.service
+        process.result.response = gantt.index(pId) - process.arrival
+        process.print()
+    sum_print(endQ)
+
+def sjf(n, process_list):
+    pList = sorted(process_list, key=lambda Process: Process.arrival)
+
+    '''
+    1. 카운터에 따라 대기 큐 갱신
+    2. 카운터에 따라 대기 큐 정렬, key = Process.service
+    '''
+    total = 0
+    for process in pList:
+        total += process.service
+    
+    waitQ = []
+    endQ = []
+    gantt = []
+    for counter in range(total):
+        # 대기 큐 업데이트
+        if pList:
+            if pList[0].arrival == counter:
+                waitQ.append(pList[0])
+                del pList[0]
+        
+        waitQ[0].service -= 1
+        gantt.append(waitQ[0].pId)
+        if waitQ[0].service == 0:
+            waitQ[0].result.end = counter + 1
+            endQ.append(waitQ[0])
+            del waitQ[0]
+            waitQ = sorted(waitQ, key=lambda Process : Process.service)
     print(''.join(gantt))    
     print()
 
