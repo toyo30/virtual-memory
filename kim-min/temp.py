@@ -1,3 +1,5 @@
+import copy
+
 class Process:
     def __init__(self, pId, arrival, service, priority):
         self.pId = pId
@@ -37,6 +39,7 @@ def print_result(process_list, gantt):
     print('average waiting time = {}'.format(average_waiting))
     print('average turnaround time = {}'.format(average_turnaround))
     print('average response time = {}'.format(average_response))
+    print()
 
 def fcfs(n, process_list):
 
@@ -75,7 +78,7 @@ def fcfs(n, process_list):
     print('average response time = {}'.format(average_response))
 
 def sjf(process_list):
-    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    not_arrived = copy.deepcopy(process_list)
     ready, end, gantt = [], [], []
     counter = 0
     # arrival time == 0인 process를 ready queue에 추가
@@ -120,7 +123,7 @@ def sjf(process_list):
     print_result(end, gantt)
 
 def srtf(process_list):
-    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    not_arrived = copy.deepcopy(process_list)
     ready, end, gantt = [], [], []
     counter = 0
     # arrival time == 0인 process를 ready queue에 추가
@@ -166,8 +169,8 @@ def srtf(process_list):
 
     print_result(end, gantt)
 
-def rr(process_list, time_quantum):
-    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+def rr(process_list):
+    not_arrived = copy.deepcopy(process_list)
     ready, end, gantt = [], [], []
     quantum = time_quantum
     counter = 0
@@ -219,7 +222,7 @@ def rr(process_list, time_quantum):
     print_result(end, gantt)
 
 def nonpreemptive_priority(process_list):
-    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    not_arrived = copy.deepcopy(process_list)
     ready, end, gantt = [], [], []
     counter = 0
     # arrival time == 0인 process를 ready queue에 추가
@@ -265,7 +268,7 @@ def nonpreemptive_priority(process_list):
     print_result(end, gantt)
 
 def preemptive_priority(process_list):
-    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    not_arrived = copy.deepcopy(process_list)
     ready, end, gantt = [], [], []
     counter = 0
     # arrival time == 0인 process를 ready queue에 추가
@@ -312,8 +315,8 @@ def preemptive_priority(process_list):
     # 결과
     print_result(end, gantt)
 
-def nonpreemptive_priority_with_RR(process_list, time_quantum):
-    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+def nonpreemptive_priority_with_RR(process_list):
+    not_arrived = copy.deepcopy(process_list)
     ready, end, gantt = [], [], []
     quantum = time_quantum
     counter = 0
@@ -367,8 +370,8 @@ def nonpreemptive_priority_with_RR(process_list, time_quantum):
     # 결과
     print_result(end, gantt)
 
-def preemptive_priority_with_RR(process_list, time_quantum):
-    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+def preemptive_priority_with_RR(process_list):
+    not_arrived = copy.deepcopy(process_list)
     ready, end, gantt = [], [], []
     quantum = time_quantum
     counter = 0
@@ -440,8 +443,10 @@ process_list = []
 for i in range(0, n):
     pId, arrival, service, priority = input().split() 
     process_list.append(Process(pId, arrival, service, priority))
+process_list = sorted(process_list, key=lambda Process: Process.arrival)
+global time_quantum
 time_quantum = int(input())
-print(' ')
+print()
 
 '''
 [sample 1]
@@ -465,10 +470,10 @@ print(' ')
 '''
 
 # fcfs(n, process_list)
-# sjf(process_list)
-# srtf(process_list)
-# rr(process_list, time_quantum)
+sjf(process_list)
+srtf(process_list)
+rr(process_list)
 nonpreemptive_priority(process_list)
 preemptive_priority(process_list)
-# nonpreemptive_priority_with_RR(process_list, time_quantum)
-# preemptive_priority_with_RR(process_list, time_quantum)
+nonpreemptive_priority_with_RR(process_list)
+preemptive_priority_with_RR(process_list)
