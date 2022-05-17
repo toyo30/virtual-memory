@@ -2,7 +2,8 @@ class Process:
     def __init__(self, pId, arrival, service, priority):
         self.pId = pId
         self.arrival = int(arrival)
-        self.service = int(service) 
+        self.service = int(service)
+        self.remaining_service = int(service)
         self.priority = int(priority)
         self.result = self.Result()
 
@@ -11,12 +12,17 @@ class Process:
             self.waiting = 0
             self.turnaround = 0
             self.response = 0
-            self.end = 0 
-    def print(self):
-        print('pId: {}, arrival: {}, service: {}, priority: {}'.format(self.pId, self.arrival, self.service, self.priority))
-        print('pId: {}, waiting: {}, turnaround: {}, response: {}, end: {}\n'.format(self.pId, self.result.waiting, self.result.turnaround, self.result.response, self.result.end))
+            self.end = 0         
 
-def sum_print(process_list):
+def print_result(process_list, gantt):
+    process_list = sorted(process_list, key=lambda Process : Process.arrival)
+    print(''.join(gantt))
+    print()
+
+    for process in process_list:
+        print('pId: {}, arrival: {}, service: {}, priority: {}'.format(process.pId, process.arrival, process.service, process.priority))
+        print('pId: {}, waiting: {}, turnaround: {}, response: {}, end: {}\n'.format(process.pId, process.result.waiting, process.result.turnaround, process.result.response, process.result.end))
+
     sum_waiting = 0
     sum_turnaround = 0
     sum_response = 0
@@ -68,525 +74,365 @@ def fcfs(n, process_list):
     print('average turnaround time = {}'.format(average_turnaround))
     print('average response time = {}'.format(average_response))
 
-def sjf(n, process_list):
-    # arrival time 기준으로 정렬
-    pList = sorted(process_list, key=lambda Process: Process.arrival)
+def sjf(process_list):
+    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    ready, end, gantt = [], [], []
+    counter = 0
+    # arrival time == 0인 process를 ready queue에 추가
+    if not_arrived[0].arrival == 0:
+        ready.append(not_arrived.pop(0))
 
-    # counter 올릴 total 시간
-    # idle task까지 고려해서 넉넉하게
-    total = 0
-    for process in pList:
-        total = total + process.service + process.arrival
-
-    # 대기 큐, 실행이 끝난 큐, 간트 차트    
-    waitQ = []
-    endQ = []
-    gantt = []
-
-    # arrival time == 0인 process를 waiting queue에 추가
-    if pList[0].arrival == 0:
-        waitQ.append(pList[0])
-        del pList[0]
-
-    for counter in range(total):
-        # waiting queue가 비어있다면(idle task), ' ' 출력
-        if not waitQ:
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-                gantt.append(' ')
-            # process_list도 비어있고 waiting queue도 비어있을 때는 pass
-            else:
-                pass
+    while True:
+        # 모든 process 실행 완료
+        if not ready and not not_arrived:
+            break
         
-        # waiting queue가 비어있지 않다면
-        else:
-            # 현재 process의 남은 service time 줄이고, 간트 차트에 pId 출력
-            waitQ[0].service -= 1
-            gantt.append(waitQ[0].pId)
+        # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
+        if not ready and not_arrived:
+            if not_arrived[0].arrival == counter + 1:
+                ready.append(not_arrived.pop(0))
+            gantt.append(' ')
+            counter += 1
+        
+        # 실행
+        if ready: 
+            current = ready[0] # 지금 실행할 프로세스 
+            if current.remaining_service == current.service: # response time
+                current.result.response = counter - current.arrival
 
-            # waiting queue 업데이트: new arrival 확인
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
+            current.remaining_service -= 1
+            gantt.append(current.pId)
 
-            # 현재 process 삭제 여부 결정
-            if waitQ[0].service == 0:
-                waitQ[0].result.end = counter + 1
-                endQ.append(waitQ[0])
-                del waitQ[0]
-                # 삭제할 때만 재정렬
-                waitQ = sorted(waitQ, key=lambda Process : Process.service)
+            # new arrival 확인
+            if not_arrived:
+                if not_arrived[0].arrival == counter + 1:
+                    ready.append(not_arrived.pop(0)) 
 
-    # 간트 차트 출력
-    print(''.join(gantt))    
-    print()
+            # 현재 process 삭제 여부 결정, result 연산
+            if current.remaining_service == 0:
+                current.result.end = counter + 1 # end
+                current.result.turnaround = current.result.end - current.arrival # turnaround
+                current.result.waiting = current.result.turnaround - current.service # waiting
+                end.append(ready.pop(0))
+                ready = sorted(ready, key=lambda Process : Process.service) # 삭제할 때만 재정렬
+            counter += 1
+    # 결과
+    print_result(end, gantt)
 
-    endQ = sorted(endQ, key=lambda Process : Process.arrival)
-    for process in endQ:
-        pId = process.pId
-        process.service = gantt.count(pId)
-        process.result.turnaround = process.result.end - process.arrival
-        process.result.waiting = process.result.turnaround - process.service
-        process.result.response = gantt.index(pId) - process.arrival
-        process.print()
-    sum_print(endQ)
+def srtf(process_list):
+    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    ready, end, gantt = [], [], []
+    counter = 0
+    # arrival time == 0인 process를 ready queue에 추가
+    if not_arrived[0].arrival == 0:
+        ready.append(not_arrived.pop(0))
 
-def srtf(n, process_list):
-    # arrival time 기준으로 정렬
-    pList = sorted(process_list, key=lambda Process: Process.arrival)
+    while True:
+        # 모든 process 실행 완료
+        if not ready and not not_arrived:
+            break
+        
+        # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
+        if not ready and not_arrived:
+            if not_arrived[0].arrival == counter + 1:
+                ready.append(not_arrived.pop(0))
+            gantt.append(' ')
+            counter += 1
 
-    # counter 올릴 total 시간
-    # idle task까지 고려해서 넉넉하게
-    total = 0
-    for process in pList:
-        total = total + process.service + process.arrival
+        # 실행
+        if ready: 
+            current = ready[0] # 지금 실행할 프로세스 
+            if current.remaining_service == current.service: # response time
+                current.result.response = counter - current.arrival
 
-    # 대기 큐, 실행이 끝난 큐, 간트 차트    
-    waitQ = []
-    endQ = []
-    gantt = []
+            current.remaining_service -= 1
+            gantt.append(current.pId)
 
-    # arrival time == 0인 process를 waiting queue에 추가
-    if pList[0].arrival == 0:
-        waitQ.append(pList[0])
-        del pList[0]
+            # new arrival 확인
+            if not_arrived:
+                if not_arrived[0].arrival == counter + 1:
+                    ready.append(not_arrived.pop(0)) 
 
-    for counter in range(total):
-        # waiting queue가 비어있다면(idle task), ' ' 출력
-        if not waitQ:
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-                gantt.append(' ')
-            # process_list도 비어있고 waiting queue도 비어있을 때는 pass
-            else:
-                pass
-            
-        # waiting queue가 비어있지 않다면
-        else:
-            # 현재 process의 남은 service time 줄이고, 간트 차트에 pId 출력
-            waitQ[0].service -= 1
-            gantt.append(waitQ[0].pId)
+            # 현재 process 삭제 여부 결정, result 연산
+            if current.remaining_service == 0:
+                current.result.end = counter + 1 # end
+                current.result.turnaround = current.result.end - current.arrival # turnaround
+                current.result.waiting = current.result.turnaround - current.service # waiting
+                end.append(ready.pop(0))
 
-            # waiting queue 업데이트: new arrival 확인
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
+            # ready queue를 남은 remaining_service time으로 정렬
+            ready = sorted(ready, key=lambda Process : Process.remaining_service)
+            counter += 1
 
-            # 현재 process 삭제 여부 결정
-            if waitQ[0].service == 0:
-                waitQ[0].result.end = counter + 1
-                endQ.append(waitQ[0])
-                del waitQ[0]
+    print_result(end, gantt)
 
-            # waiting queue를 남은 service time으로 정렬
-            # sjf와 달리 매 counter마다 재정렬
-            waitQ = sorted(waitQ, key=lambda Process : Process.service)
-
-    # 간트 차트 출력
-    print(''.join(gantt))
-    print()
-
-    endQ = sorted(endQ, key=lambda Process : Process.arrival)
-    for process in endQ:
-        pId = process.pId
-        process.service = gantt.count(pId)
-        process.result.turnaround = process.result.end - process.arrival
-        process.result.waiting = process.result.turnaround - process.service
-        process.result.response = gantt.index(pId) - process.arrival
-        process.print()
-    sum_print(endQ)
-
-def rr(n, process_list, time_quantum):
-    # arrival time 기준으로 정렬
-    pList = sorted(process_list, key=lambda Process: Process.arrival)
+def rr(process_list, time_quantum):
+    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    ready, end, gantt = [], [], []
     quantum = time_quantum
+    counter = 0
+    # arrival time == 0인 process를 ready queue에 추가
+    if not_arrived[0].arrival == 0:
+        ready.append(not_arrived.pop(0))
 
-    # counter 올릴 total 시간
-    # idle task까지 고려해서 넉넉하게
-    total = 0
-    for process in pList:
-        total = total + process.service + process.arrival
+    while True:
+        # 모든 process 실행 완료
+        if not ready and not not_arrived:
+            break
+        
+        # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
+        if not ready and not_arrived:
+            if not_arrived[0].arrival == counter + 1:
+                ready.append(not_arrived.pop(0))
+            gantt.append(' ')
+            counter += 1
+        
+        # 실행
+        if ready: 
+            current = ready[0] # 지금 실행할 프로세스 
+            if current.remaining_service == current.service: # response time
+                current.result.response = counter - current.arrival
 
-    # 대기 큐, 실행이 끝난 큐, 간트 차트    
-    waitQ = []
-    endQ = []
-    gantt = []
-
-    # arrival time == 0인 process를 waiting queue에 추가
-    if pList[0].arrival == 0:
-        waitQ.append(pList[0])
-        del pList[0]
-
-    for counter in range(total):
-        # waiting queue가 비어있다면(idle task), ' ' 출력
-        if not waitQ:
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-                gantt.append(' ')
-            # process_list도 비어있고 waiting queue도 비어있을 때는 pass
-            else:
-                pass
-
-        # waiting queue가 비어있지 않다면
-        else:   
-            # 현재 process의 남은 service time 줄이고, 간트 차트에 pId 출력
-            # time quantum도 줄임
-            waitQ[0].service -= 1
-            gantt.append(waitQ[0].pId)
+            current.remaining_service -= 1
+            gantt.append(current.pId)
             quantum -= 1
 
-            # waiting queue 업데이트: new arrival 확인
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
+            # new arrival 확인
+            if not_arrived:
+                if not_arrived[0].arrival == counter + 1:
+                    ready.append(not_arrived.pop(0)) 
 
-            # waiting queue 재정렬
-            # service time == 0: 현재 프로세스 삭제
-            if waitQ[0].service == 0:
-                waitQ[0].result.end = counter + 1
-                endQ.append(waitQ[0])
-                del waitQ[0]
-
+            # 현재 process 삭제 여부 결정, result 연산
+            if current.remaining_service == 0:
+                current.result.end = counter + 1 # end
+                current.result.turnaround = current.result.end - current.arrival # turnaround
+                current.result.waiting = current.result.turnaround - current.service # waiting
+                end.append(ready.pop(0))
                 if quantum == 0:
                     quantum = time_quantum
-            # service time != 0: 뒤로 보내기
             else:                
                 if quantum == 0:
                     quantum = time_quantum
-                    waitQ.append(waitQ[0])
-                    del waitQ[0]
+                    ready.append(ready.pop(0))
+            counter += 1
+    # 결과
+    print_result(end, gantt)
 
-    # 간트 차트 출력
-    print(''.join(gantt))    
-    print()
+def nonpreemptive_priority(process_list):
+    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    ready, end, gantt = [], [], []
+    counter = 0
+    # arrival time == 0인 process를 ready queue에 추가
+    if not_arrived[0].arrival == 0:
+        ready.append(not_arrived.pop(0))
 
-    endQ = sorted(endQ, key=lambda Process : Process.arrival)
-    for process in endQ:
-        pId = process.pId
-        process.service = gantt.count(pId)
-        process.result.turnaround = process.result.end - process.arrival
-        process.result.waiting = process.result.turnaround - process.service
-        process.result.response = gantt.index(pId) - process.arrival
-        process.print()
-    sum_print(endQ)
-
-def nonpreemptive_priority(n, process_list):
-    # arrival time 기준으로 정렬
-    pList = sorted(process_list, key=lambda Process: Process.arrival)
-
-    # counter 올릴 total 시간
-    # idle task까지 고려해서 넉넉하게
-    total = 0
-    for process in pList:
-        total = total + process.service + process.arrival
-
-    # 대기 큐, 실행이 끝난 큐, 간트 차트    
-    waitQ = []
-    endQ = []
-    gantt = []
-
-    # arrival time == 0인 process를 waiting queue에 추가
-    if pList[0].arrival == 0:
-        waitQ.append(pList[0])
-        del pList[0]
-
-    for counter in range(total):
-        # waiting queue가 비어있다면(idle task), ' ' 출력
-        if not waitQ:
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-                gantt.append(' ')
-            # process_list도 비어있고 waiting queue도 비어있을 때는 pass
-            else:
-                pass
+    while True:
+        # 모든 process 실행 완료
+        if not ready and not not_arrived:
+            break
         
-        # waiting queue가 비어있지 않다면
-        else:
-            # 현재 process의 남은 service time 줄이고, 간트 차트에 pId 출력
-            waitQ[0].service -= 1
-            gantt.append(waitQ[0].pId)
-
-            # waiting queue 업데이트: new arrival 확인
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
+        # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
+        if not ready and not_arrived:
+            if not_arrived[0].arrival == counter + 1:
+                ready.append(not_arrived.pop(0))
+            gantt.append(' ')
+            counter += 1
         
-            # 현재 process 삭제 여부 결정
-            if waitQ[0].service == 0:
-                waitQ[0].result.end = counter + 1
-                endQ.append(waitQ[0])
-                del waitQ[0]
+        # 실행
+        if ready: 
+            current = ready[0] # 지금 실행할 프로세스 
+            if current.remaining_service == current.service: # response time
+                current.result.response = counter - current.arrival
+
+            current.remaining_service -= 1
+            gantt.append(current.pId)
+
+            # new arrival 확인
+            if not_arrived:
+                if not_arrived[0].arrival == counter + 1:
+                    ready.append(not_arrived.pop(0))
+        
+            # 현재 process 삭제 여부 결정, result 연산
+            if current.remaining_service == 0:
+                current.result.end = counter + 1 # end
+                current.result.turnaround = current.result.end - current.arrival # turnaround
+                current.result.waiting = current.result.turnaround - current.service # waiting
+                end.append(ready.pop(0))
                 # 삭제할 때만 재정렬
-                waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+                ready = sorted(ready, key=lambda Process : Process.priority)
+            counter += 1
+    # 결과
+    print_result(end, gantt)
 
-    # 간트 차트 출력
-    print(''.join(gantt))    
-    print()
+def preemptive_priority(process_list):
+    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    ready, end, gantt = [], [], []
+    counter = 0
+    # arrival time == 0인 process를 ready queue에 추가
+    if not_arrived[0].arrival == 0:
+        ready.append(not_arrived.pop(0))
 
-    endQ = sorted(endQ, key=lambda Process : Process.arrival)
-    for process in endQ:
-        pId = process.pId
-        process.service = gantt.count(pId)
-        process.result.turnaround = process.result.end - process.arrival
-        process.result.waiting = process.result.turnaround - process.service
-        process.result.response = gantt.index(pId) - process.arrival
-        process.print()
-    sum_print(endQ)
+    while True:
+        # 모든 process 실행 완료
+        if not ready and not not_arrived:
+            break
+        
+        # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
+        if not ready and not_arrived:
+            if not_arrived[0].arrival == counter + 1:
+                ready.append(not_arrived.pop(0))
+            gantt.append(' ')
+            counter += 1
+        
+        # 실행
+        if ready: 
+            current = ready[0] # 지금 실행할 프로세스 
+            if current.remaining_service == current.service: # response time
+                current.result.response = counter - current.arrival
 
-def preemptive_priority(n, process_list):
-    # arrival time 기준으로 정렬
-    pList = sorted(process_list, key=lambda Process: Process.arrival)
+            current.remaining_service -= 1
+            gantt.append(current.pId)
 
-    # counter 올릴 total 시간
-    # idle task까지 고려해서 넉넉하게
-    total = 0
-    for process in pList:
-        total = total + process.service + process.arrival
+            # new arrival 확인
+            if not_arrived:
+                if not_arrived[0].arrival == counter + 1:
+                    ready.append(not_arrived.pop(0))
 
-    # 대기 큐, 실행이 끝난 큐, 간트 차트    
-    waitQ = []
-    endQ = []
-    gantt = []
+        
+            # 현재 process 삭제 여부 결정, result 연산
+            if current.remaining_service == 0:
+                current.result.end = counter + 1 # end
+                current.result.turnaround = current.result.end - current.arrival # turnaround
+                current.result.waiting = current.result.turnaround - current.service # waiting
+                end.append(ready.pop(0))
 
-    # arrival time == 0인 process를 waiting queue에 추가
-    if pList[0].arrival == 0:
-        waitQ.append(pList[0])
-        del pList[0]
+            # 매 iteration마다 priority 기준으로 정렬
+            ready = sorted(ready, key=lambda Process : Process.priority)
+            counter += 1
+    # 결과
+    print_result(end, gantt)
 
-    for counter in range(total):
-        # waiting queue가 비어있다면(idle task), ' ' 출력
-        if not waitQ:
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-                gantt.append(' ')
-            # process_list도 비어있고 waiting queue도 비어있을 때는 pass
-            else:
-                pass
-            
-        # waiting queue가 비어있지 않다면
-        else:
-            # 현재 process의 남은 service time 줄이고, 간트 차트에 pId 출력
-            waitQ[0].service -= 1
-            gantt.append(waitQ[0].pId)
-
-            # waiting queue 업데이트: new arrival 확인
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-
-            # 현재 process 삭제 여부 결정
-            if waitQ[0].service == 0:
-                waitQ[0].result.end = counter + 1
-                endQ.append(waitQ[0])
-                del waitQ[0]
-
-            # waiting queue를 남은 service time으로 정렬
-            # sjf와 달리 매 counter마다 재정렬
-            waitQ = sorted(waitQ, key=lambda Process : Process.priority)
-
-    # 간트 차트 출력
-    print(''.join(gantt))
-    print()
-
-    endQ = sorted(endQ, key=lambda Process : Process.arrival)
-    for process in endQ:
-        pId = process.pId
-        process.service = gantt.count(pId)
-        process.result.turnaround = process.result.end - process.arrival
-        process.result.waiting = process.result.turnaround - process.service
-        process.result.response = gantt.index(pId) - process.arrival
-        process.print()
-    sum_print(endQ)
-
-def nonpreemptive_priority_with_RR(n, process_list, time_quantum):
-    # arrival time 기준으로 정렬
-    pList = sorted(process_list, key=lambda Process: Process.arrival)
+def nonpreemptive_priority_with_RR(process_list, time_quantum):
+    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    ready, end, gantt = [], [], []
     quantum = time_quantum
+    counter = 0
+    # arrival time == 0인 process를 ready queue에 추가
+    if not_arrived[0].arrival == 0:
+        ready.append(not_arrived.pop(0))
 
-    # counter 올릴 total 시간
-    # idle task까지 고려해서 넉넉하게
-    total = 0
-    for process in pList:
-        total = total + process.service + process.arrival
+    while True:
+        # 모든 process 실행 완료
+        if not ready and not not_arrived:
+            break
+        
+        # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
+        if not ready and not_arrived:
+            if not_arrived[0].arrival == counter + 1:
+                ready.append(not_arrived.pop(0))
+            gantt.append(' ')
+            counter += 1
+        
+        # 실행
+        if ready: 
+            current = ready[0] # 지금 실행할 프로세스 
+            if current.remaining_service == current.service: # response time
+                current.result.response = counter - current.arrival
 
-    # 대기 큐, 실행이 끝난 큐, 간트 차트    
-    waitQ = []
-    endQ = []
-    gantt = []
-
-    # arrival time == 0인 process를 waiting queue에 추가
-    if pList[0].arrival == 0:
-        waitQ.append(pList[0])
-        del pList[0]
-
-    for counter in range(total):
-        # waiting queue가 비어있다면(idle task), ' ' 출력
-        if not waitQ:
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-                gantt.append(' ')
-            # process_list도 비어있고 waiting queue도 비어있을 때는 pass
-            else:
-                pass
-
-        # waiting queue가 비어있지 않다면
-        else:
-            # 현재 process의 남은 service time 줄이고, 간트 차트에 pId 출력
-            # time quantum도 줄임
-            waitQ[0].service -= 1
-            gantt.append(waitQ[0].pId)
+            current.remaining_service -= 1
+            gantt.append(current.pId)
             quantum -= 1
 
-            # waiting queue 업데이트: new arrival 확인
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
+            # new arrival 확인
+            if not_arrived:
+                if not_arrived[0].arrival == counter + 1:
+                    ready.append(not_arrived.pop(0))
 
-            # waiting queue 재정렬
-            if waitQ[0].service == 0:
-                waitQ[0].result.end = counter + 1
-                endQ.append(waitQ[0])
-                del waitQ[0]
-
+            # 현재 process 삭제 여부 결정, result 연산
+            if current.remaining_service == 0:
+                current.result.end = counter + 1 # end
+                current.result.turnaround = current.result.end - current.arrival # turnaround
+                current.result.waiting = current.result.turnaround - current.service # waiting
+                end.append(ready.pop(0))
                 if quantum == 0:
                     quantum = time_quantum
-                    # quantum마다 재정렬
-                    waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+                    ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
             else:
                 # 뒤로 보내기
                 if quantum == 0:
                     quantum = time_quantum
-                    waitQ.append(waitQ[0])
-                    del waitQ[0]
-                    # quantum마다 재정렬
-                    waitQ = sorted(waitQ, key=lambda Process : Process.priority)
-        
-    # 간트 차트 출력
-    print(''.join(gantt))
-    print()
+                    ready.append(ready.pop(0))
+                    ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+            counter += 1
+    # 결과
+    print_result(end, gantt)
 
-    endQ = sorted(endQ, key=lambda Process : Process.arrival)
-    for process in endQ:
-        pId = process.pId
-        process.service = gantt.count(pId)
-        process.result.turnaround = process.result.end - process.arrival
-        process.result.waiting = process.result.turnaround - process.service
-        process.result.response = gantt.index(pId) - process.arrival
-        process.print()
-    sum_print(endQ)
-
-def preemptive_priority_with_RR(n, process_list, time_quantum):
-    # arrival time 기준으로 정렬
-    pList = sorted(process_list, key=lambda Process: Process.arrival)
+def preemptive_priority_with_RR(process_list, time_quantum):
+    not_arrived = sorted(process_list, key=lambda Process: Process.arrival)
+    ready, end, gantt = [], [], []
     quantum = time_quantum
+    counter = 0
+    # arrival time == 0인 process를 ready queue에 추가
+    if not_arrived[0].arrival == 0:
+        ready.append(not_arrived.pop(0))
 
-    # counter 올릴 total 시간
-    # idle task까지 고려해서 넉넉하게
-    total = 0
-    for process in pList:
-        total = total + process.service + process.arrival
+    while True:
+        # 모든 process 실행 완료
+        if not ready and not not_arrived:
+            break
+        
+        # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
+        if not ready and not_arrived:
+            if not_arrived[0].arrival == counter + 1:
+                ready.append(not_arrived.pop(0))
+            gantt.append(' ')
+            counter += 1
+        
+        # 실행
+        if ready: 
+            current = ready[0] # 지금 실행할 프로세스 
+            if current.remaining_service == current.service: # response time
+                current.result.response = counter - current.arrival
 
-    # 대기 큐, 실행이 끝난 큐, 간트 차트
-    waitQ = []
-    endQ = []
-    gantt = []
-
-    # arrival time == 0인 process를 waiting queue에 추가
-    if pList[0].arrival == 0:
-        waitQ.append(pList[0])
-        del pList[0]
-
-    for counter in range(total):
-        # waiting queue가 비어있다면(idle task), ' ' 출력
-        if not waitQ:
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-                gantt.append(' ')
-            # process_list도 비어있고 waiting queue도 비어있을 때는 pass
-            else:
-                pass
-
-        # waiting queue가 비어있지 않다면
-        else:
-            # 현재 process의 남은 service time 줄이고, 간트 차트에 pId 출력
-            # time quantum도 줄임
-            waitQ[0].service -= 1
-            gantt.append(waitQ[0].pId)
+            current.remaining_service -= 1
+            gantt.append(current.pId)
             quantum -= 1
+            
+            # new arrival 확인
+            if not_arrived:
+                if not_arrived[0].arrival == counter + 1:
+                    ready.append(not_arrived.pop(0))
 
-            # waiting queue 업데이트: new arrival 확인
-            if pList:
-                if pList[0].arrival == counter + 1:
-                    waitQ.append(pList[0])
-                    del pList[0]
-
-            # waiting queue 재정렬
-            # 현재 process 삭제
-            if waitQ[0].service == 0:
-                waitQ[0].result.end = counter + 1
-                endQ.append(waitQ[0])
-                del waitQ[0]
-
+            # 현재 process 삭제 여부 결정, result 연산
+            if current.remaining_service == 0:
+                current.result.end = counter + 1 # end
+                current.result.turnaround = current.result.end - current.arrival # turnaround
+                current.result.waiting = current.result.turnaround - current.service # waiting
+                end.append(ready.pop(0))
                 if quantum == 0:
                     quantum = time_quantum
-                    # quantum마다 재정렬
-                    waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+                    ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
             else:
-                # 뒤로 보내기        
+                # 뒤로 보내기
                 if quantum == 0:
                     quantum = time_quantum
-                    waitQ.append(waitQ[0])
-                    del waitQ[0]
-                    # quantum마다 재정렬
-                    waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+                    ready.append(ready.pop(0))
+                    ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
             
             # 비선점 priority with RR과 다른 케이스
             # quantum == 0 말고 그냥 priority로 뺏긴 케이스
             # 매 counter마다 재정렬
-            if waitQ:
-                temp = waitQ[0]
-                tempQ = sorted(waitQ, key=lambda Process : Process.priority)
-                if temp.pId == tempQ[0].pId:
-                    waitQ = sorted(waitQ, key=lambda Process : Process.priority)
+            if ready:
+                temp = ready[0]
+                temp_queue = sorted(ready, key=lambda Process : Process.priority)
+                if temp.pId == temp_queue[0].pId:
+                    ready = sorted(ready, key=lambda Process : Process.priority)
                 else:
-                    waitQ.append(waitQ[0])
-                    del waitQ[0]
-                    waitQ = sorted(waitQ, key=lambda Process : Process.priority)
-
-        
-    # 간트 차트 출력
-    print(''.join(gantt))    
-    print()
-
-    endQ = sorted(endQ, key=lambda Process : Process.arrival)
-    for process in endQ:
-        pId = process.pId
-        process.service = gantt.count(pId)
-        process.result.turnaround = process.result.end - process.arrival
-        process.result.waiting = process.result.turnaround - process.service
-        process.result.response = gantt.index(pId) - process.arrival
-        process.print()
-    sum_print(endQ)
+                    ready.append(ready.pop(0))
+                    ready = sorted(ready, key=lambda Process : Process.priority)
+            counter += 1
+    # 결과
+    print_result(end, gantt)
 
 # 메인
 n = int(input())
@@ -598,7 +444,7 @@ time_quantum = int(input())
 print(' ')
 
 '''
-sample1
+[sample 1]
 5
 3 2 6 4
 1 0 10 3
@@ -607,16 +453,7 @@ sample1
 5 4 14 2
 2
 
-sample2
-5
-3 2 6 4
-1 0 10 3
-2 1 28 2
-4 3 4 1
-5 92 14 2
-2
-
-sample3
+[sample 2]
 6
 1 0 20 5
 2 25 25 30
@@ -628,10 +465,10 @@ sample3
 '''
 
 # fcfs(n, process_list)
-# sjf(n, process_list)
-# srtf(n, process_list)
-# rr(n, process_list, time_quantum)
-# nonpreemptive_priority(n, process_list)
-preemptive_priority(n, process_list)
-# nonpreemptive_priority_with_RR(n, process_list, time_quantum)
-# preemptive_priority_with_RR(n, process_list, time_quantum)
+# sjf(process_list)
+# srtf(process_list)
+# rr(process_list, time_quantum)
+nonpreemptive_priority(process_list)
+preemptive_priority(process_list)
+# nonpreemptive_priority_with_RR(process_list, time_quantum)
+# preemptive_priority_with_RR(process_list, time_quantum)
