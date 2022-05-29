@@ -56,7 +56,7 @@ def fcfs(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -72,8 +72,8 @@ def fcfs(process_list):
 
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
-                    ready.append(not_arrived.pop(0)) 
+                if not_arrived[0].arrival <= counter + 1:
+                    ready.append(not_arrived.pop(0))
 
             # 현재 process 삭제 여부 결정, result 연산
             if current.remaining_service == 0:
@@ -517,9 +517,9 @@ print()
 '''
 [sample 1]
 5
+3 2 6 4
 1 0 10 3
 2 1 28 2
-3 2 6 4
 4 3 4 1
 5 4 14 2
 2
@@ -563,11 +563,11 @@ https://www.geeksforgeeks.org/multilevel-feedback-queue-scheduling-mlfq-cpu-sche
 '''
 
 fcfs(process_list)
-sjf(process_list)
-srtf(process_list)
-rr(process_list)
-nonpreemptive_priority(process_list)
-preemptive_priority(process_list)
-nonpreemptive_priority_with_RR(process_list)
-preemptive_priority_with_RR(process_list)
-hrrn(process_list)
+# sjf(process_list)
+# srtf(process_list)
+# rr(process_list)
+# nonpreemptive_priority(process_list)
+# preemptive_priority(process_list)
+# nonpreemptive_priority_with_RR(process_list)
+# preemptive_priority_with_RR(process_list)
+# hrrn(process_list)
