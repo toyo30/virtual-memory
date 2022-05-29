@@ -100,7 +100,7 @@ def sjf(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -116,7 +116,7 @@ def sjf(process_list):
 
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
+                if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0)) 
 
             # 현재 process 삭제 여부 결정, result 연산
@@ -145,7 +145,7 @@ def srtf(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -161,7 +161,7 @@ def srtf(process_list):
 
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
+                if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0)) 
 
             # 현재 process 삭제 여부 결정, result 연산
@@ -193,7 +193,7 @@ def rr(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -210,7 +210,7 @@ def rr(process_list):
 
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
+                if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0)) 
 
             # 현재 process 삭제 여부 결정, result 연산
@@ -244,7 +244,7 @@ def nonpreemptive_priority(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -260,7 +260,7 @@ def nonpreemptive_priority(process_list):
 
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
+                if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0))
         
             # 현재 process 삭제 여부 결정, result 연산
@@ -290,7 +290,7 @@ def preemptive_priority(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -306,7 +306,7 @@ def preemptive_priority(process_list):
 
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
+                if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0))
 
         
@@ -339,7 +339,7 @@ def nonpreemptive_priority_with_RR(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -356,7 +356,7 @@ def nonpreemptive_priority_with_RR(process_list):
 
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
+                if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0))
 
             # 현재 process 삭제 여부 결정, result 연산
@@ -394,7 +394,7 @@ def preemptive_priority_with_RR(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -411,7 +411,7 @@ def preemptive_priority_with_RR(process_list):
             
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
+                if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0))
 
             # 현재 process 삭제 여부 결정, result 연산
@@ -460,7 +460,7 @@ def hrrn(process_list):
         
         # idle task: not_arrived에는 아직 process가 있지만, ready queue는 비어있는 상태
         if not ready and not_arrived:
-            if not_arrived[0].arrival == counter + 1:
+            if not_arrived[0].arrival <= counter + 1:
                 ready.append(not_arrived.pop(0))
             gantt.append(' ')
             counter += 1
@@ -476,7 +476,7 @@ def hrrn(process_list):
 
             # new arrival 확인
             if not_arrived:
-                if not_arrived[0].arrival == counter + 1:
+                if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0)) 
 
             # 현재 process 삭제 여부 결정, result 연산
