@@ -1,5 +1,6 @@
 import sys
 import copy
+
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 from PyQt5.QtGui import *
 from PyQt5.QtGui import QFontDatabase, QFont
@@ -8,9 +9,9 @@ from PyQt5.QtCore import *
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import *
 from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QSizePolicy
-from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton
+from PyQt5.QtWidgets import QGridLayout, QLabel, QLineEdit, QPushButton, QScrollBar
 from PyQt5.QtWidgets import QApplication, QWidget, QDesktopWidget, QGroupBox
-
+from PyQt5.QtWidgets import QMainWindow, QTableWidget, QTableWidgetItem, QTableView
 
 # Process Class def =============================================== #
 
@@ -565,6 +566,7 @@ class MyApp(QWidget):
         self.setLayout(box_main)
         box_left = QVBoxLayout()
         self.n = 1
+        self.col_n = 0
         self.selected = -1
 
     # box_table def =============================================== #
@@ -635,6 +637,27 @@ class MyApp(QWidget):
         num_Button.clicked.connect(edit_input_row)
         input_switch.addWidget(num_Button, alignment=Qt.AlignRight) 
 
+        def tableMerge():
+            for i in range(0, algorithms_num):
+                temp_merge = 0
+                count = 0
+                for j in range(0, self.col_n): 
+                    # self.col_n-1 / 뒤의 것과 같을 때
+                    # 뒤의 것과 다른데 count가 0 / 뒤의 것과 달라서 merge해야 함
+
+                    if (j == self.col_n - 1):
+                        if (count != 0): gantt_Table[i].setSpan(0, temp_merge, 1, count + 1)
+                        else: break
+
+                    elif (result[i].gantt[j] == result[i].gantt[j + 1]): count += 1
+
+                    elif (count == 0): temp_merge = j + 1
+
+                    else: # 다를 때
+                        gantt_Table[i].setSpan(0, temp_merge, 1, count + 1)
+                        temp_merge = j + 1
+                        count = 0
+
         def execute():          
             diff = self.n - len(result[0].process)
             if(diff > 0):
@@ -693,11 +716,23 @@ class MyApp(QWidget):
             best_Label[1].setText(str(result[best_turnaround].name))
             best_Label[2].setText(str(result[best_response].name))
 
-            '''
+            self.col_n = len(result[0].gantt)
             for i in range(0, algorithms_num):
-                gantt_LineEdit[i].setText(str(result[i].gantt))
-            '''
-            
+                gantt_Table[i].clearSpans()
+                gantt_Table[i].setColumnCount(self.col_n)
+                gantt_Table[i].setRowCount(1)
+                # for j in range(0, self.col_n): gantt_Table[i].setColumnWidth(0, 30)
+                for j in range(0, self.col_n):
+                    item = QTableWidgetItem(str(result[i].gantt[j]))
+                    item.setTextAlignment(Qt.AlignCenter)
+                    gantt_Table[i].setItem(0, j, item)
+                
+                if (self.col_n < 99):
+                    for j in range(0, self.col_n): gantt_Table[i].setColumnWidth(j, 4)
+                else: 
+                    for j in range(0, self.col_n): gantt_Table[i].setColumnWidth(j, 50)
+
+            tableMerge()
             return
 
         output_switch = QHBoxLayout()
@@ -718,8 +753,8 @@ class MyApp(QWidget):
         execute_Button.clicked.connect(execute)
         output_switch.addWidget(execute_Button, alignment=Qt.AlignRight)
 
-        space_a = 7
-        space_b = 3
+        space_a = 20
+        space_b = 9
         for i in range(0, space_a): 
             temp_Label = QLabel(' ')
             temp_Label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
@@ -841,11 +876,15 @@ class MyApp(QWidget):
             gantt_Button[i].released.connect(gantt_button)
             box_gantt.addWidget(gantt_Button[i], i, 1)
 
-        gantt_LineEdit = []
+        gantt_Table = []
         for i in range(0, algorithms_num):
-            gantt_LineEdit.append(QGroupBox())
-            gantt_LineEdit[i].setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-            box_gantt.addWidget(gantt_LineEdit[i], i, 2)
+            gantt_Table.append(QtWidgets.QTableWidget(self))
+            gantt_Table[i].setColumnCount(self.col_n)
+            gantt_Table[i].setRowCount(0)
+            gantt_Table[i].setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOn)
+            gantt_Table[i].verticalHeader().setVisible(False)
+            gantt_Table[i].setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+            box_gantt.addWidget(gantt_Table[i], i, 2)     
 
     # box_main add =============================================== #
 
