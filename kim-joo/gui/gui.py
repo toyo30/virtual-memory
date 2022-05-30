@@ -553,7 +553,7 @@ class MyApp(QWidget):
         self.initUI()
 
     def initUI(self):
-        self.setWindowTitle('CPU Scheduler | 9조')
+        self.setWindowTitle('CPU Scheduler | 9조 | 김민재, 김주영, 박호경, 백민기')
         self.setGeometry(50, 50, 1600, 900)
         self.setFixedSize(1600, 900)
         self.center()
@@ -564,7 +564,7 @@ class MyApp(QWidget):
         box_main = QHBoxLayout()
         self.setLayout(box_main)
         box_left = QVBoxLayout()
-        self.n = 0
+        self.n = 1
         self.selected = -1
 
     # box_table def =============================================== #
@@ -618,7 +618,8 @@ class MyApp(QWidget):
                 return
 
         input_switch = QHBoxLayout()
-        input_switch.addStretch(0)  
+        input_switch.addStretch(0)
+        # input_switch.setFixedWidth(550)
 
         temp_Label = QLabel('Process 개수:')
         input_switch.addWidget(temp_Label, alignment=Qt.AlignRight)
@@ -701,6 +702,7 @@ class MyApp(QWidget):
 
         output_switch = QHBoxLayout()
         output_switch.addStretch(0)
+        # output_switch.setFixedWidth(400)
 
         temp_Label = QLabel('Time Quantum:')
         output_switch.addWidget(temp_Label, alignment=Qt.AlignRight)
@@ -716,8 +718,19 @@ class MyApp(QWidget):
         execute_Button.clicked.connect(execute)
         output_switch.addWidget(execute_Button, alignment=Qt.AlignRight)
 
-        box_switch.addLayout(input_switch, 0, 0)
-        box_switch.addLayout(output_switch, 0, 1)
+        space_a = 7
+        space_b = 3
+        for i in range(0, space_a): 
+            temp_Label = QLabel(' ')
+            temp_Label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            box_switch.addWidget(temp_Label, 0, i)
+        box_switch.addLayout(input_switch, 0, space_a)
+        space_a += 1
+        for i in range(0, space_b): 
+            temp_Label = QLabel(' ')
+            temp_Label.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            box_switch.addWidget(temp_Label, 0, i + space_a)
+        box_switch.addLayout(output_switch, 0, space_a + space_b)
 
     # box_result def =============================================== #
 

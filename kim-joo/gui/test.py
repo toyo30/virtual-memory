@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Oct 20 14:08:50 2020
-@author: Deep.I inc.
+@author: Deep.I inc. jongwon kim
 """
-from PyQt5 import QtWidgets, QtGui
+
+from PyQt5 import QtGui, QtWidgets
 from PyQt5 import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -24,7 +25,7 @@ class Screen(QMainWindow):
         
         self.gridLayout.addWidget(self.screen, 0, 0, 1, 1)
         self.setCentralWidget(self.centralwidget)
-    
+ 
     def __init__(self):
         super().__init__() 
         self.setupUi()
@@ -56,7 +57,7 @@ class Screen(QMainWindow):
             self.present_y = y
 
             self.img = QPixmap("screen.png")
-            painter = QtGui.QPainter(self)
+            painter = QtGui.QPainter(self.img)
             painter.setPen(QPen(Qt.black, 10, Qt.SolidLine))
             painter.drawLine(self.past_x,self.past_y,self.present_x,self.present_y)
             painter.end
