@@ -556,7 +556,7 @@ class MyApp(QWidget):
     def initUI(self):
         self.setWindowTitle('CPU Scheduler | 9조 | 김민재, 김주영, 박호경, 백민기')
         self.setGeometry(50, 50, 1600, 900)
-        self.setFixedSize(1600, 900)
+        self.setFixedSize(1900, 900)
         self.center()
         self.show()
 
@@ -568,6 +568,7 @@ class MyApp(QWidget):
         self.n = 1
         self.col_n = 0
         self.selected = -1
+        self.color = 0
 
     # box_table def =============================================== #
 
@@ -637,23 +638,43 @@ class MyApp(QWidget):
         num_Button.clicked.connect(edit_input_row)
         input_switch.addWidget(num_Button, alignment=Qt.AlignRight) 
 
+        def switchColor():
+            if (self.color): self.color = 0
+            else: self.color = 1
+
+        def tableColor(color, i, j):
+            gantt_Table[i].item(0, j).setForeground(QtGui.QColor(255,255,255))
+            if (color): gantt_Table[i].item(0, j).setBackground(QtGui.QColor(60,60,60))
+            else: gantt_Table[i].item(0, j).setBackground(QtGui.QColor(80,80,80))
+
         def tableMerge():
             for i in range(0, algorithms_num):
+                self.color = 0
                 temp_merge = 0
                 count = 0
                 for j in range(0, self.col_n): 
                     # self.col_n-1 / 뒤의 것과 같을 때
                     # 뒤의 것과 다른데 count가 0 / 뒤의 것과 달라서 merge해야 함
-
                     if (j == self.col_n - 1):
-                        if (count != 0): gantt_Table[i].setSpan(0, temp_merge, 1, count + 1)
-                        else: break
+                        if (count != 0): 
+                            tableColor(self.color, i, j)                            
+                            gantt_Table[i].setSpan(0, temp_merge, 1, count + 1)
+                        else: 
+                            tableColor(self.color, i, j) 
+                            break
 
-                    elif (result[i].gantt[j] == result[i].gantt[j + 1]): count += 1
+                    elif (result[i].gantt[j] == result[i].gantt[j + 1]): 
+                        tableColor(self.color, i, j)
+                        count += 1
 
-                    elif (count == 0): temp_merge = j + 1
+                    elif (count == 0): 
+                        temp_merge = j + 1
+                        tableColor(self.color, i, j)
+                        switchColor()
 
                     else: # 다를 때
+                        tableColor(self.color, i, j)
+                        switchColor()
                         gantt_Table[i].setSpan(0, temp_merge, 1, count + 1)
                         temp_merge = j + 1
                         count = 0
@@ -721,8 +742,8 @@ class MyApp(QWidget):
                 gantt_Table[i].clearSpans()
                 gantt_Table[i].setColumnCount(self.col_n)
                 gantt_Table[i].setRowCount(1)
-                # for j in range(0, self.col_n): gantt_Table[i].setColumnWidth(0, 30)
                 for j in range(0, self.col_n):
+                    if (str(result[i].gantt[j]) == ' '): result[i].gantt[j] = 'idle'
                     item = QTableWidgetItem(str(result[i].gantt[j]))
                     item.setTextAlignment(Qt.AlignCenter)
                     gantt_Table[i].setItem(0, j, item)
