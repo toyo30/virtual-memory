@@ -644,8 +644,8 @@ class MyApp(QWidget):
 
         def tableColor(color, i, j):
             gantt_Table[i].item(0, j).setForeground(QtGui.QColor(255,255,255))
-            if (color): gantt_Table[i].item(0, j).setBackground(QtGui.QColor(60,60,60))
-            else: gantt_Table[i].item(0, j).setBackground(QtGui.QColor(80,80,80))
+            if (color): gantt_Table[i].item(0, j).setBackground(QtGui.QColor(20,20,20))
+            else: gantt_Table[i].item(0, j).setBackground(QtGui.QColor(100,100,100))
 
         def tableMerge():
             for i in range(0, algorithms_num):
@@ -747,11 +747,7 @@ class MyApp(QWidget):
                     item = QTableWidgetItem(str(result[i].gantt[j]))
                     item.setTextAlignment(Qt.AlignCenter)
                     gantt_Table[i].setItem(0, j, item)
-                
-                if (self.col_n < 99):
-                    for j in range(0, self.col_n): gantt_Table[i].setColumnWidth(j, 4)
-                else: 
-                    for j in range(0, self.col_n): gantt_Table[i].setColumnWidth(j, 50)
+                for j in range(0, self.col_n): gantt_Table[i].setColumnWidth(j, 4)
 
             tableMerge()
             return
