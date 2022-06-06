@@ -261,8 +261,7 @@ def rr(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                if quantum == 0:
-                    quantum = time_quantum
+                quantum = time_quantum
             else:                
                 if quantum == 0:
                     quantum = time_quantum
@@ -395,6 +394,7 @@ def nonpreemptive_priority_with_RR(process_list):
             current.remaining_service -= 1
             gantt.append(current.pId)
             quantum -= 1
+            current_id = current.pId
 
             # new arrival 확인
             if not_arrived:
@@ -407,15 +407,14 @@ def nonpreemptive_priority_with_RR(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                if quantum == 0:
-                    quantum = time_quantum
-                    ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                quantum = time_quantum
             else:
-                # 뒤로 보내기
                 if quantum == 0:
-                    quantum = time_quantum
-                    ready.append(ready.pop(0))
                     ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                    if ready[0].pId == current_id:
+                        ready.append(ready.pop(0))
+                    quantum = time_quantum    
             counter += 1
     # 결과
     get_result(end, gantt, 6)
@@ -450,6 +449,7 @@ def preemptive_priority_with_RR(process_list):
             current.remaining_service -= 1
             gantt.append(current.pId)
             quantum -= 1
+            current_id = current.pId
             
             # new arrival 확인
             if not_arrived:
@@ -462,27 +462,18 @@ def preemptive_priority_with_RR(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                if quantum == 0:
-                    quantum = time_quantum
-                    ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                quantum = time_quantum
             else:
-                # 뒤로 보내기
                 if quantum == 0:
-                    quantum = time_quantum
-                    ready.append(ready.pop(0))
                     ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
-            
-            # 비선점 priority with RR과 다른 케이스
-            # quantum == 0 말고 그냥 priority로 뺏긴 케이스
-            # 매 counter마다 재정렬
-            if ready:
-                temp = ready[0]
-                temp_queue = sorted(ready, key=lambda Process : Process.priority)
-                if temp.pId == temp_queue[0].pId:
-                    ready = sorted(ready, key=lambda Process : Process.priority)
+                    if ready[0].pId == current_id:
+                        ready.append(ready.pop(0))
+                    quantum = time_quantum
                 else:
-                    ready.append(ready.pop(0))
                     ready = sorted(ready, key=lambda Process : Process.priority)
+                    if ready[0].pId != current_id:
+                        quantum = time_quantum
             counter += 1
     # 결과
     get_result(end, gantt, 7)
