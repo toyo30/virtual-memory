@@ -19,27 +19,6 @@ class Process:
 def print_result(process_list, gantt):
     process_list = sorted(process_list, key=lambda Process : Process.arrival)
     print(''.join(gantt))
-    print()
-
-    for process in process_list:
-        print('pId: {}, arrival: {}, service: {}, priority: {}'.format(process.pId, process.arrival, process.service, process.priority))
-        print('pId: {}, waiting: {}, turnaround: {}, response: {}, end: {}\n'.format(process.pId, process.result.waiting, process.result.turnaround, process.result.response, process.result.end))
-
-    sum_waiting = 0
-    sum_turnaround = 0
-    sum_response = 0
-    for i in range(0, n):
-        sum_waiting += process_list[i].result.waiting
-        sum_turnaround += process_list[i].result.turnaround
-        sum_response += process_list[i].result.response
-    average_waiting = sum_waiting / n
-    average_turnaround = sum_turnaround / n
-    average_response = sum_response / n
-
-    print('average waiting time = {}'.format(average_waiting))
-    print('average turnaround time = {}'.format(average_turnaround))
-    print('average response time = {}'.format(average_response))
-    print()
 
 def fcfs(process_list):
     not_arrived = copy.deepcopy(process_list)
@@ -227,7 +206,7 @@ def rr(process_list):
             counter += 1
     # 결과
     print_result(end, gantt)
-    
+
 def nonpreemptive_priority(process_list):
     not_arrived = copy.deepcopy(process_list)
     ready, end, gantt = [], [], []
@@ -352,6 +331,7 @@ def nonpreemptive_priority_with_RR(process_list):
             current.remaining_service -= 1
             gantt.append(current.pId)
             quantum -= 1
+            current_id = current.pId
 
             # new arrival 확인
             if not_arrived:
@@ -364,14 +344,14 @@ def nonpreemptive_priority_with_RR(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                quantum = time_quantum
                 ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                quantum = time_quantum
             else:
-                # 뒤로 보내기
                 if quantum == 0:
-                    quantum = time_quantum
-                    ready.append(ready.pop(0))
                     ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                    if ready[0].pId == current_id:
+                        ready.append(ready.pop(0))
+                    quantum = time_quantum    
             counter += 1
     # 결과
     print_result(end, gantt)
@@ -406,6 +386,7 @@ def preemptive_priority_with_RR(process_list):
             current.remaining_service -= 1
             gantt.append(current.pId)
             quantum -= 1
+            current_id = current.pId
             
             # new arrival 확인
             if not_arrived:
@@ -418,26 +399,18 @@ def preemptive_priority_with_RR(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                quantum = time_quantum
                 ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                quantum = time_quantum
             else:
-                # 뒤로 보내기
                 if quantum == 0:
-                    quantum = time_quantum
-                    ready.append(ready.pop(0))
                     ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
-            
-            # 비선점 priority with RR과 다른 케이스
-            # quantum == 0 말고 그냥 priority로 뺏긴 케이스
-            # 매 counter마다 재정렬
-            if ready:
-                temp = ready[0]
-                temp_queue = sorted(ready, key=lambda Process : Process.priority)
-                if temp.pId == temp_queue[0].pId:
-                    ready = sorted(ready, key=lambda Process : Process.priority)
+                    if ready[0].pId == current_id:
+                        ready.append(ready.pop(0))
+                    quantum = time_quantum
                 else:
-                    ready.append(ready.pop(0))
                     ready = sorted(ready, key=lambda Process : Process.priority)
+                    if ready[0].pId != current_id:
+                        quantum = time_quantum
             counter += 1
     # 결과
     print_result(end, gantt)
@@ -533,8 +506,6 @@ print()
 
 [HRRN]
 https://www.geeksforgeeks.org/highest-response-ratio-next-hrrn-cpu-scheduling/
-초기 priority 값은 의미 없어서 1로 입력만 함
-참고한 샘플, but HRRN의 효과가 안 나타남
 5
 1 0 3 1
 2 2 6 1
@@ -543,37 +514,24 @@ https://www.geeksforgeeks.org/highest-response-ratio-next-hrrn-cpu-scheduling/
 5 8 2 1
 5
 
-SJF vs HRRN 비교용 샘플
-max(response time) = 72(P2) vs 35(P4)
-response time of P2 = 72 vs 9
-5
-1 0 10 1
-2 1 30 1
-3 8 25 1
-4 50 18 1
-5 35 20 1
-2
-
+Demo
 6
-P0 0 4 3
-P1 1 2 2
-P2 2 3 1
-P3 4 1 5
-P4 7 5 2
-P5 8 3 4
+0 0 4 3
+1 1 2 2
+2 2 3 1
+3 4 1 5
+4 7 5 2
+5 8 3 4
 3
 
-[MLFQ]
-https://www.geeksforgeeks.org/multilevel-feedback-queue-scheduling-mlfq-cpu-scheduling/?ref=lbp
-정보 부족
 '''
 
-# fcfs(process_list)
-# sjf(process_list)
-# srtf(process_list)
-# rr(process_list)
+fcfs(process_list)
+sjf(process_list)
+srtf(process_list)
+rr(process_list)
 nonpreemptive_priority(process_list)
-# preemptive_priority(process_list)
-# nonpreemptive_priority_with_RR(process_list)
-# preemptive_priority_with_RR(process_list)
-# hrrn(process_list)
+preemptive_priority(process_list)
+nonpreemptive_priority_with_RR(process_list)
+preemptive_priority_with_RR(process_list)
+hrrn(process_list)
