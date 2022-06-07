@@ -219,8 +219,7 @@ def rr(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                if quantum == 0:
-                    quantum = time_quantum
+                quantum = time_quantum
             else:                
                 if quantum == 0:
                     quantum = time_quantum
@@ -365,9 +364,8 @@ def nonpreemptive_priority_with_RR(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                if quantum == 0:
-                    quantum = time_quantum
-                    ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                quantum = time_quantum
+                ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
             else:
                 # 뒤로 보내기
                 if quantum == 0:
@@ -420,9 +418,8 @@ def preemptive_priority_with_RR(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                if quantum == 0:
-                    quantum = time_quantum
-                    ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
+                quantum = time_quantum
+                ready = sorted(ready, key=lambda Process : Process.priority) # 재정렬
             else:
                 # 뒤로 보내기
                 if quantum == 0:
@@ -557,16 +554,25 @@ response time of P2 = 72 vs 9
 5 35 20 1
 2
 
+6
+P0 0 4 3
+P1 1 2 2
+P2 2 3 1
+P3 4 1 5
+P4 7 5 2
+P5 8 3 4
+3
+
 [MLFQ]
 https://www.geeksforgeeks.org/multilevel-feedback-queue-scheduling-mlfq-cpu-scheduling/?ref=lbp
 정보 부족
 '''
 
-fcfs(process_list)
+# fcfs(process_list)
 # sjf(process_list)
 # srtf(process_list)
 # rr(process_list)
-# nonpreemptive_priority(process_list)
+nonpreemptive_priority(process_list)
 # preemptive_priority(process_list)
 # nonpreemptive_priority_with_RR(process_list)
 # preemptive_priority_with_RR(process_list)

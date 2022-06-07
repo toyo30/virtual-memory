@@ -1,5 +1,6 @@
 import sys
 import copy
+import random
 
 from PyQt5 import QtWidgets, QtCore, QtGui, uic
 from PyQt5.QtGui import *
@@ -24,6 +25,7 @@ class Process:
         self.priority = int(priority)
         self.num = int(num)
         self.result = self.Result()
+        self.color = []
 
     class Result:        
         def __init__(self):
@@ -357,7 +359,6 @@ def preemptive_priority(process_list):
                 current.result.turnaround = current.result.end - current.arrival # turnaround
                 current.result.waiting = current.result.turnaround - current.service # waiting
                 end.append(ready.pop(0))
-                ready = sorted(ready, key=lambda Process : Process.priority)
 
             # 매 iteration마다 priority 기준으로 정렬
             ready = sorted(ready, key=lambda Process : Process.priority)
@@ -566,7 +567,6 @@ class MyApp(QWidget):
         self.n = 1
         self.col_n = 0
         self.selected = -1
-        self.color = 0
 
     # box_table def =============================================== #
 
@@ -636,18 +636,21 @@ class MyApp(QWidget):
         num_Button.clicked.connect(edit_input_row)
         input_switch.addWidget(num_Button, alignment=Qt.AlignRight) 
 
-        def switchColor():
-            if (self.color): self.color = 0
-            else: self.color = 1
+        def tableColor(i, j):
+            k = 0
+            for l in range(0, self.n):
+                if (result[0].process[l].pId == result[i].gantt[j]):
+                    k = l
+                    break
 
-        def tableColor(color, i, j):
-            gantt_Table[i].item(0, j).setForeground(QtGui.QColor(255,255,255))
-            if (color): gantt_Table[i].item(0, j).setBackground(QtGui.QColor(20,20,20))
-            else: gantt_Table[i].item(0, j).setBackground(QtGui.QColor(100,100,100))
+            sum = 0
+            for l in range(0, 3): sum += result[0].process[k].color[l]
+            if (sum <= 300): gantt_Table[i].item(0, j).setForeground(QtGui.QColor(255,255,255))
+            gantt_Table[i].item(0, j).setBackground(QtGui.QColor(result[0].process[k].color[0],result[0].process[k].color[1],result[0].process[k].color[2]))
+            return 0
 
         def tableMerge():
             for i in range(0, algorithms_num):
-                self.color = 0
                 temp_merge = 0
                 count = 0
                 for j in range(0, self.col_n): 
@@ -655,24 +658,22 @@ class MyApp(QWidget):
                     # 뒤의 것과 다른데 count가 0 / 뒤의 것과 달라서 merge해야 함
                     if (j == self.col_n - 1):
                         if (count != 0): 
-                            tableColor(self.color, i, j)                            
+                            tableColor(i, j)                            
                             gantt_Table[i].setSpan(0, temp_merge, 1, count + 1)
                         else: 
-                            tableColor(self.color, i, j) 
+                            tableColor(i, j) 
                             break
 
                     elif (result[i].gantt[j] == result[i].gantt[j + 1]): 
-                        tableColor(self.color, i, j)
+                        tableColor(i, j)
                         count += 1
 
                     elif (count == 0): 
                         temp_merge = j + 1
-                        tableColor(self.color, i, j)
-                        switchColor()
+                        tableColor(i, j)
 
                     else: # 다를 때
-                        tableColor(self.color, i, j)
-                        switchColor()
+                        tableColor(i, j)
                         gantt_Table[i].setSpan(0, temp_merge, 1, count + 1)
                         temp_merge = j + 1
                         count = 0
@@ -691,6 +692,14 @@ class MyApp(QWidget):
                     result[i].process[j].service = table_input.item(j, 2).text()
                     result[i].process[j].priority = table_input.item(j, 3).text()
                     result[i].process[j].num = j
+
+            for j in range(0, self.n):
+                for i in range(0, 3):
+                    result[0].process[j].color.append(random.randrange(0,256))
+
+            for i in range(1, algorithms_num):
+                for j in range(0, self.n):
+                    result[i].process[j].color = result[0].process[j].color
 
             process_list = []
             for i in range(0, self.n):
