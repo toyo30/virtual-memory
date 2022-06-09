@@ -637,6 +637,10 @@ class MyApp(QWidget):
                     k = l
                     break
 
+            if (result[i].gantt[j] == "idle"):
+                gantt_Table[i].item(0, j).setBackground(QtGui.QColor(255, 255, 255))
+                return 0
+
             sum = 0
             for l in range(0, 3): sum += result[0].process[k].color[l]
             if (sum <= 300): gantt_Table[i].item(0, j).setForeground(QtGui.QColor(255,255,255))
