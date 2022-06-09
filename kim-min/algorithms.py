@@ -19,6 +19,27 @@ class Process:
 def print_result(process_list, gantt):
     process_list = sorted(process_list, key=lambda Process : Process.arrival)
     print(''.join(gantt))
+    print()
+
+    for process in process_list:
+        print('pId: {}, arrival: {}, service: {}, priority: {}'.format(process.pId, process.arrival, process.service, process.priority))
+        print('pId: {}, waiting: {}, turnaround: {}, response: {}, end: {}\n'.format(process.pId, process.result.waiting, process.result.turnaround, process.result.response, process.result.end))
+
+    sum_waiting = 0
+    sum_turnaround = 0
+    sum_response = 0
+    for i in range(0, n):
+        sum_waiting += process_list[i].result.waiting
+        sum_turnaround += process_list[i].result.turnaround
+        sum_response += process_list[i].result.response
+    average_waiting = sum_waiting / n
+    average_turnaround = sum_turnaround / n
+    average_response = sum_response / n
+
+    print('average waiting time = {}'.format(average_waiting))
+    print('average turnaround time = {}'.format(average_turnaround))
+    print('average response time = {}'.format(average_response))
+    print()
 
 def fcfs(process_list):
     not_arrived = copy.deepcopy(process_list)
@@ -449,6 +470,16 @@ def hrrn(process_list):
                 if not_arrived[0].arrival <= counter + 1:
                     ready.append(not_arrived.pop(0)) 
 
+            # HRRN, 매 counter마다 대기 시간 계산 필요함
+            for process in ready:
+                if process == current:
+                    pass
+                else:
+                    process.result.waiting += 1                    
+                    # Response Ratio = (service time + waiting time) / service time
+                    process.priority = (process.service + process.result.waiting) / process.service
+            counter += 1      
+
             # 현재 process 삭제 여부 결정, result 연산
             if current.remaining_service == 0:
                 current.result.end = counter + 1 # end
@@ -460,16 +491,7 @@ def hrrn(process_list):
                 # ready 재정렬 기준이 service time에서 response ratio로 바뀜
                 # Highest Response Ratio Next, 우선순위 "내림차순" 정렬
                 ready = sorted(ready, key=lambda Process : -Process.priority)
-
-            # HRRN, 매 counter마다 대기 시간 계산 필요함
-            for process in ready:
-                if process == current:
-                    pass
-                else:
-                    process.result.waiting += 1                    
-                    # Response Ratio = (service time + waiting time) / service time
-                    process.priority = (process.service + process.result.waiting) / process.service     
-            counter += 1            
+      
     # 결과
     print_result(end, gantt)
 
@@ -526,12 +548,12 @@ Demo
 
 '''
 
-fcfs(process_list)
+# fcfs(process_list)
 sjf(process_list)
-srtf(process_list)
-rr(process_list)
-nonpreemptive_priority(process_list)
-preemptive_priority(process_list)
-nonpreemptive_priority_with_RR(process_list)
-preemptive_priority_with_RR(process_list)
+# srtf(process_list)
+# rr(process_list)
+# nonpreemptive_priority(process_list)
+# preemptive_priority(process_list)
+# nonpreemptive_priority_with_RR(process_list)
+# preemptive_priority_with_RR(process_list)
 hrrn(process_list)
